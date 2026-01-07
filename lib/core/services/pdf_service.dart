@@ -318,8 +318,10 @@ class PdfService {
                       pw.Spacer(),
 
                       // Footer
-                      pw.Center(
+                      pw.Align(
+                        alignment: pw.Alignment.centerRight,
                         child: pw.Column(
+                          crossAxisAlignment: pw.CrossAxisAlignment.end,
                           children: [
                             pw.Text(
                               'Thank you for choosing us',
@@ -332,7 +334,7 @@ class PdfService {
                             pw.SizedBox(height: 5),
                             pw.Text(
                               "Your well-being is our commitment, and we're honored\nyou've entrusted us with your health journey",
-                              textAlign: pw.TextAlign.center,
+                              textAlign: pw.TextAlign.right,
                               style: const pw.TextStyle(
                                 fontSize: 8,
                                 color: PdfColors.grey500,

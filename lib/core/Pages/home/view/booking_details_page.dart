@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../models/patient_model.dart';
 
@@ -9,7 +10,9 @@ class BookingDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Format Date correctly: dd/mm/yyyy
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(statusBarIconBrightness: Brightness.dark),
+    );
     String dateStr = 'N/A';
     if (patient.dateAndTime != null) {
       dateStr =

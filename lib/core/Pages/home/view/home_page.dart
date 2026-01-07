@@ -1,5 +1,6 @@
 import 'package:amritha_ayurveda/core/authentication/provider/auth_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../widgets/patient_card.dart';
 import 'booking_details_page.dart';
@@ -33,6 +34,9 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(statusBarIconBrightness: Brightness.dark),
+    );
     final homeProvider = context.watch<HomeProvider>();
     return Scaffold(
       backgroundColor: Colors.white,
