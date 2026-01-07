@@ -6,6 +6,7 @@ class CustomInputField extends StatelessWidget {
   final String hint;
   final bool obscureText;
   final TextInputType? keyboardType;
+  final TextEditingController? controller;
 
   const CustomInputField({
     super.key,
@@ -13,6 +14,7 @@ class CustomInputField extends StatelessWidget {
     required this.hint,
     this.obscureText = false,
     this.keyboardType,
+    this.controller,
   });
 
   @override
@@ -30,6 +32,7 @@ class CustomInputField extends StatelessWidget {
         ),
         SizedBox(height: 8.h),
         TextField(
+          controller: controller,
           obscureText: obscureText,
           keyboardType: keyboardType,
           decoration: InputDecoration(

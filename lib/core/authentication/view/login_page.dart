@@ -1,10 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
+import '../provider/auth_provider.dart';
 import '../widgets/custom_input_field.dart';
+import '../../views/home_page.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,39 +72,100 @@ class LoginPage extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 30.h),
-                  const CustomInputField(
+                  CustomInputField(
+                    controller: _usernameController,
                     label: "Email",
                     hint: "Enter your email",
                     keyboardType: TextInputType.emailAddress,
                   ),
                   SizedBox(height: 20.h),
-                  const CustomInputField(
+                  CustomInputField(
+                    controller: _passwordController,
                     label: "Password",
                     hint: "Enter password",
                     obscureText: true,
                   ),
                   SizedBox(height: 20.h),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50.h,
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xff006837),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.r),
+                  Consumer<AuthProvider>(
+                    builder: (context, auth, child) {
+                      return SizedBox(
+                        width: double.infinity,
+                        height: 50.h,
+                        child: ElevatedButton(
+                          onPressed: auth.isLoading
+                              ? null
+                              : () async {
+                                  final username = _usernameController.text
+                                      .trim();
+                                  final password = _passwordController.text
+                                      .trim();
+
+                                  if (username.isEmpty || password.isEmpty) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          "Please enter both username and password",
+                                        ),
+                                      ),
+                                    );
+                                    return;
+                                  }
+
+                                  final success = await auth.login(
+                                    username,
+                                    password,
+                                  );
+                                  debugPrint("Login success: $success");
+                                  if (success) {
+                                    if (context.mounted) {
+                                      debugPrint("Navigating to HomePage...");
+                                      Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const HomePage(),
+                                        ),
+                                      );
+                                    }
+                                  } else {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text("Login Failed"),
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xff006837),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.r),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: auth.isLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Text(
+                                  "Login",
+                                  style: TextStyle(
+                                    fontSize: 18.sp,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                         ),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        "Login",
-                        style: TextStyle(
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
                   SizedBox(height: 10.h),
                   Center(

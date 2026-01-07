@@ -4,7 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'core/providers/home_provider.dart';
 import 'core/providers/splash_screen_provider.dart';
-import 'core/views/home_page.dart';
+import 'core/authentication/provider/auth_provider.dart';
 
 void main() {
   runApp(
@@ -12,6 +12,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => HomeProvider()),
         ChangeNotifierProvider(create: (_) => SplashScreenProvider()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
       ],
       child: const MyApp(),
     ),
