@@ -3,12 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'core/providers/home_provider.dart';
+import 'core/providers/splash_screen_provider.dart';
 import 'core/views/home_page.dart';
 
 void main() {
   runApp(
     MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => HomeProvider())],
+      providers: [
+        ChangeNotifierProvider(create: (_) => HomeProvider()),
+        ChangeNotifierProvider(create: (_) => SplashScreenProvider()),
+      ],
       child: const MyApp(),
     ),
   );
@@ -23,11 +27,12 @@ class MyApp extends StatelessWidget {
       designSize: const Size(360, 690),
       minTextAdapt: true,
       splitScreenMode: true,
-      // Use builder only if you need to use library outside ScreenUtilInit context
       builder: (_, child) {
         return MaterialApp(
+          debugShowCheckedModeBanner: false,
           title: 'Amritha Ayurveda',
           theme: ThemeData(
+            fontFamily: 'Poppins',
             colorScheme: ColorScheme.fromSeed(seedColor: Color(0xff006837)),
             useMaterial3: true,
           ),
