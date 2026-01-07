@@ -9,6 +9,7 @@ import 'core/Pages/register/provider/register_provider.dart';
 import 'core/utils/snackbar_service.dart';
 import 'core/utils/navigation_service.dart';
 import 'core/providers/connectivity_provider.dart';
+import 'core/widgets/connectivity_wrapper.dart';
 
 void main() {
   runApp(
@@ -47,6 +48,9 @@ class MyApp extends StatelessWidget {
             ),
             useMaterial3: true,
           ),
+          builder: (context, child) {
+            return ConnectivityWrapper(child: child ?? const SizedBox.shrink());
+          },
           home: const SplashScreen(),
         );
       },

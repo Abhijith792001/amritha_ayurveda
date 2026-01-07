@@ -33,6 +33,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final homeProvider = context.watch<HomeProvider>();
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -147,30 +148,68 @@ class _HomePageState extends State<HomePage> {
                       color: const Color(0xFF1E1E1E),
                     ),
                   ),
-                  Container(
-                    height: 40.h,
-                    width: 140.w,
-                    padding: EdgeInsets.symmetric(horizontal: 15.w),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(25.r),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Date",
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            color: const Color(0xFF1E1E1E),
+                  InkWell(
+                    onTap: () async {
+                      final DateTime? picked = await showDatePicker(
+                        context: context,
+                        initialDate:
+                            homeProvider.selectedDate ?? DateTime.now(),
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2101),
+                        builder: (context, child) {
+                          return Theme(
+                            data: Theme.of(context).copyWith(
+                              colorScheme: const ColorScheme.light(
+                                primary: Color(0xff006837),
+                                onPrimary: Colors.white,
+                                onSurface: Colors.black,
+                              ),
+                            ),
+                            child: child!,
+                          );
+                        },
+                      );
+                      if (picked != null) {
+                        homeProvider.setSelectedDate(picked);
+                      }
+                    },
+                    child: Container(
+                      height: 40.h,
+                      padding: EdgeInsets.symmetric(horizontal: 15.w),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(25.r),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            homeProvider.selectedDate == null
+                                ? "Date"
+                                : "${homeProvider.selectedDate!.day}/${homeProvider.selectedDate!.month}/${homeProvider.selectedDate!.year}",
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              color: const Color(0xFF1E1E1E),
+                            ),
                           ),
-                        ),
-                        Icon(
-                          Icons.keyboard_arrow_down,
-                          color: const Color(0xff006837),
-                          size: 20.sp,
-                        ),
-                      ],
+                          SizedBox(width: 8.w),
+                          if (homeProvider.selectedDate != null)
+                            GestureDetector(
+                              onTap: () => homeProvider.setSelectedDate(null),
+                              child: Icon(
+                                Icons.close,
+                                color: Colors.red,
+                                size: 18.sp,
+                              ),
+                            )
+                          else
+                            Icon(
+                              Icons.keyboard_arrow_down,
+                              color: const Color(0xff006837),
+                              size: 20.sp,
+                            ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -204,6 +243,18 @@ class _HomePageState extends State<HomePage> {
                               fontSize: 18.sp,
                               color: Colors.grey,
                             ),
+                          ),
+                          SizedBox(height: 16.h),
+                          ElevatedButton(
+                            onPressed: () => homeProvider.fetchPatientList(),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xff006837),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8.r),
+                              ),
+                            ),
+                            child: const Text("Retry"),
                           ),
                         ],
                       ),

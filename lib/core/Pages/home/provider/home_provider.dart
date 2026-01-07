@@ -16,17 +16,44 @@ class HomeProvider extends ChangeNotifier {
   String _searchQuery = "";
   String get searchQuery => _searchQuery;
 
+  DateTime? _selectedDate;
+  DateTime? get selectedDate => _selectedDate;
+
   void setSearchQuery(String query) {
     _searchQuery = query;
     notifyListeners();
   }
 
+  void setSelectedDate(DateTime? date) {
+    _selectedDate = date;
+    notifyListeners();
+  }
+
   List<Patient> get filteredPatients {
-    if (_searchQuery.isEmpty) {
-      return _patients;
+    List<Patient> list = _patients;
+
+    // Filter by Date
+    if (_selectedDate != null) {
+      list = list.where((patient) {
+        if (patient.dateAndTime == null) return false;
+        try {
+          // Compare only dates (year, month, day)
+          return patient.dateAndTime!.year == _selectedDate!.year &&
+              patient.dateAndTime!.month == _selectedDate!.month &&
+              patient.dateAndTime!.day == _selectedDate!.day;
+        } catch (e) {
+          return false;
+        }
+      }).toList();
     }
+
+    // Filter by Search Query
+    if (_searchQuery.isEmpty) {
+      return list;
+    }
+
     final query = _searchQuery.toLowerCase();
-    return _patients.where((patient) {
+    return list.where((patient) {
       final nameMatch = (patient.name ?? "").toLowerCase().contains(query);
       final treatmentMatch = patient.patientDetails.any(
         (detail) => (detail.treatmentName ?? "").toLowerCase().contains(query),

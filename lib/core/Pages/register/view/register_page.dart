@@ -506,12 +506,32 @@ class _RegisterPageState extends State<RegisterPage> {
               SizedBox(width: 20.w),
               _buildPatientInfo("Female", treatment['female']),
               const Spacer(),
-              const Icon(Icons.edit, color: Color(0xff006837), size: 20),
+              IconButton(
+                onPressed: () => _editTreatment(index, treatment),
+                icon: const Icon(
+                  Icons.edit,
+                  color: Color(0xff006837),
+                  size: 20,
+                ),
+              ),
             ],
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _editTreatment(int index, Map<String, dynamic> treatment) async {
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) => TreatmentDialog(initialData: treatment),
+    );
+
+    if (result != null) {
+      setState(() {
+        _selectedTreatments[index] = result;
+      });
+    }
   }
 
   Widget _buildPatientInfo(String label, int count) {

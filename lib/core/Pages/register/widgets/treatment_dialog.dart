@@ -4,7 +4,8 @@ import 'package:provider/provider.dart';
 import '../provider/register_provider.dart';
 
 class TreatmentDialog extends StatefulWidget {
-  const TreatmentDialog({super.key});
+  final Map<String, dynamic>? initialData;
+  const TreatmentDialog({super.key, this.initialData});
 
   @override
   State<TreatmentDialog> createState() => _TreatmentDialogState();
@@ -19,6 +20,12 @@ class _TreatmentDialogState extends State<TreatmentDialog> {
   @override
   void initState() {
     super.initState();
+    if (widget.initialData != null) {
+      maleCount = widget.initialData!['male'] ?? 0;
+      femaleCount = widget.initialData!['female'] ?? 0;
+      selectedTreatmentId = widget.initialData!['id']?.toString();
+      selectedTreatmentName = widget.initialData!['treatment'];
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<RegisterProvider>().fetchTreatments();
     });
