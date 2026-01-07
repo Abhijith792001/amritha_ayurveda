@@ -1,4 +1,4 @@
-import 'package:amritha_ayurveda/core/views/splash_screen.dart';
+import 'package:amritha_ayurveda/core/Pages/splash_screen_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';

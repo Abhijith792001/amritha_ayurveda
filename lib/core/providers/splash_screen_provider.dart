@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../authentication/view/login_page.dart';
 import '../storage/app_storage.dart';
-import '../views/home_page.dart';
+import '../Pages/home_page.dart';
 
 class SplashScreenProvider extends ChangeNotifier {
   final AppStorage _storage = AppStorage();
