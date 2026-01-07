@@ -6,6 +6,8 @@ import 'core/Pages/home/provider/home_provider.dart';
 import 'core/Pages/splash/provider/splash_screen_provider.dart';
 import 'core/authentication/provider/auth_provider.dart';
 import 'core/Pages/register/provider/register_provider.dart';
+import 'core/utils/snackbar_service.dart';
+import 'core/utils/navigation_service.dart';
 
 void main() {
   runApp(
@@ -32,11 +34,15 @@ class MyApp extends StatelessWidget {
       splitScreenMode: true,
       builder: (_, child) {
         return MaterialApp(
+          navigatorKey: NavigationService.navigatorKey,
+          scaffoldMessengerKey: SnackbarService.messengerKey,
           debugShowCheckedModeBanner: false,
           title: 'Amritha Ayurveda',
           theme: ThemeData(
             fontFamily: 'Poppins',
-            colorScheme: ColorScheme.fromSeed(seedColor: Color(0xff006837)),
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xff006837),
+            ),
             useMaterial3: true,
           ),
           home: const SplashScreen(),

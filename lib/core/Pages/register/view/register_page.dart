@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import '../provider/register_provider.dart';
 import '../widgets/treatment_dialog.dart';
+import 'package:amritha_ayurveda/core/storage/app_storage.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -13,6 +14,7 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
+  final AppStorage _storage = AppStorage();
 
   final _nameController = TextEditingController();
   final _whatsappController = TextEditingController();
@@ -23,11 +25,55 @@ class _RegisterPageState extends State<RegisterPage> {
   final _balanceAmountController = TextEditingController();
 
   String? _selectedLocation;
-  String? _selectedBranch;
+  String? _selectedBranchId;
   String? _paymentOption = "Cash";
+  String? _executiveName;
   DateTime? _treatmentDate;
+  String? _selectedHour;
+  String? _selectedMinute;
 
   List<Map<String, dynamic>> _selectedTreatments = [];
+
+  final List<String> _locations = ["Kozhikode", "Palakkad", "Kochi", "Trissur"];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserInfo();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<RegisterProvider>().fetchBranches();
+    });
+
+    // Add listeners for automatic balance calculation
+    _totalAmountController.addListener(_calculateBalance);
+    _discountAmountController.addListener(_calculateBalance);
+    _advanceAmountController.addListener(_calculateBalance);
+  }
+
+  Future<void> _loadUserInfo() async {
+    final name = await _storage.getUserName();
+    final phone = await _storage.getUserPhone();
+    setState(() {
+      _executiveName = name;
+      if (name != null) _nameController.text = name;
+      if (phone != null) _whatsappController.text = phone;
+    });
+  }
+
+  void _calculateBalance() {
+    final total = double.tryParse(_totalAmountController.text) ?? 0.0;
+    final discount = double.tryParse(_discountAmountController.text) ?? 0.0;
+    final advance = double.tryParse(_advanceAmountController.text) ?? 0.0;
+
+    final balance = total - discount - advance;
+
+    // Update balance controller without triggering its own listeners if any (though it won't here)
+    // We use a simple check to avoid unnecessary text updates that move the cursor
+    final balanceStr = balance.toStringAsFixed(0);
+    if (_balanceAmountController.text != balanceStr) {
+      _balanceAmountController.text = balanceStr;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,13 +112,18 @@ class _RegisterPageState extends State<RegisterPage> {
               const Divider(),
               SizedBox(height: 20.h),
               _buildLabel("Name"),
-              _buildTextField(_nameController, "Enter your full name"),
+              _buildTextField(
+                _nameController,
+                "Enter your full name",
+                validator: (v) => v!.isEmpty ? "Required" : null,
+              ),
 
               _buildLabel("Whatsapp Number"),
               _buildTextField(
                 _whatsappController,
                 "Enter your Whatsapp number",
                 keyboardType: TextInputType.phone,
+                validator: (v) => v!.isEmpty ? "Required" : null,
               ),
 
               _buildLabel("Address"),
@@ -80,22 +131,49 @@ class _RegisterPageState extends State<RegisterPage> {
                 _addressController,
                 "Enter your full address",
                 maxLines: 3,
+                validator: (v) => v!.isEmpty ? "Required" : null,
               ),
 
               _buildLabel("Location"),
               _buildDropdown(
                 "Choose your location",
-                ["Location 1", "Location 2"],
+                _locations,
                 _selectedLocation,
                 (val) => setState(() => _selectedLocation = val),
               ),
 
               _buildLabel("Branch"),
-              _buildDropdown(
-                "Select the branch",
-                ["Branch 1", "Branch 2"],
-                _selectedBranch,
-                (val) => setState(() => _selectedBranch = val),
+              Consumer<RegisterProvider>(
+                builder: (context, register, child) {
+                  return Container(
+                    padding: EdgeInsets.symmetric(horizontal: 12.w),
+                    decoration: BoxDecoration(
+                      color: const Color(0xffF1F1F1),
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        isExpanded: true,
+                        hint: Text(
+                          "Select the branch",
+                          style: TextStyle(
+                            color: Colors.grey.shade400,
+                            fontSize: 14.sp,
+                          ),
+                        ),
+                        value: _selectedBranchId,
+                        items: register.branches.map((branch) {
+                          return DropdownMenuItem<String>(
+                            value: branch['id'].toString(),
+                            child: Text(branch['name'] ?? ''),
+                          );
+                        }).toList(),
+                        onChanged: (val) =>
+                            setState(() => _selectedBranchId = val),
+                      ),
+                    ),
+                  );
+                },
               ),
 
               _buildLabel("Treatments"),
@@ -143,10 +221,18 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
 
               _buildLabel("Total Amount"),
-              _buildTextField(_totalAmountController, ""),
+              _buildTextField(
+                _totalAmountController,
+                "",
+                keyboardType: TextInputType.number,
+              ),
 
               _buildLabel("Discount Amount"),
-              _buildTextField(_discountAmountController, ""),
+              _buildTextField(
+                _discountAmountController,
+                "",
+                keyboardType: TextInputType.number,
+              ),
 
               _buildLabel("Payment Option"),
               Row(
@@ -158,10 +244,18 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
 
               _buildLabel("Advance Amount"),
-              _buildTextField(_advanceAmountController, ""),
+              _buildTextField(
+                _advanceAmountController,
+                "",
+                keyboardType: TextInputType.number,
+              ),
 
               _buildLabel("Balance Amount"),
-              _buildTextField(_balanceAmountController, ""),
+              _buildTextField(
+                _balanceAmountController,
+                "",
+                keyboardType: TextInputType.number,
+              ),
 
               _buildLabel("Treatment Date"),
               _buildDatePicker(),
@@ -173,6 +267,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     child: _buildTimeDropdown(
                       "Hour",
                       List.generate(24, (i) => i.toString().padLeft(2, '0')),
+                      _selectedHour,
+                      (val) => setState(() => _selectedHour = val),
                     ),
                   ),
                   SizedBox(width: 10.w),
@@ -180,6 +276,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     child: _buildTimeDropdown(
                       "Minutes",
                       List.generate(60, (i) => i.toString().padLeft(2, '0')),
+                      _selectedMinute,
+                      (val) => setState(() => _selectedMinute = val),
                     ),
                   ),
                 ],
@@ -236,6 +334,7 @@ class _RegisterPageState extends State<RegisterPage> {
     String hint, {
     int maxLines = 1,
     TextInputType? keyboardType,
+    String? Function(String?)? validator,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -246,6 +345,7 @@ class _RegisterPageState extends State<RegisterPage> {
         controller: controller,
         maxLines: maxLines,
         keyboardType: keyboardType,
+        validator: validator,
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14.sp),
@@ -346,7 +446,12 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  Widget _buildTimeDropdown(String label, List<String> items) {
+  Widget _buildTimeDropdown(
+    String label,
+    List<String> items,
+    String? value,
+    Function(String?) onChanged,
+  ) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12.w),
       decoration: BoxDecoration(
@@ -357,10 +462,11 @@ class _RegisterPageState extends State<RegisterPage> {
         child: DropdownButton<String>(
           isExpanded: true,
           hint: Text(label, style: TextStyle(fontSize: 14.sp)),
+          value: value,
           items: items.map((String val) {
             return DropdownMenuItem<String>(value: val, child: Text(val));
           }).toList(),
-          onChanged: (val) {},
+          onChanged: onChanged,
         ),
       ),
     );
@@ -431,41 +537,27 @@ class _RegisterPageState extends State<RegisterPage> {
 
   void _handleSave() async {
     if (_formKey.currentState!.validate()) {
-      // Collect data and send to API
-      final data = {
-        'name': _nameController.text,
-        'phone': _whatsappController.text,
-        'address': _addressController.text,
-        'total_amount': _totalAmountController.text,
-        'discount_amount': _discountAmountController.text,
-        'advance_amount': _advanceAmountController.text,
-        'balance_amount': _balanceAmountController.text,
-        'payment': _paymentOption,
-        'branch': '163', // Hardcoded as per cURL or use selected branch ID
-        'excecutive': 'Admin',
-        'date_nd_time':
-            '30/01/2026-02:15 AM', // Format properly correctly later
-        'male': '100', // Example
-        'female': '100',
-        'treatments': '100',
-      };
-
-      final success = await context.read<RegisterProvider>().registerPatient(
-        data,
-      );
-      if (success) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Registered Successfully")),
+      final success = await context
+          .read<RegisterProvider>()
+          .registerAndGeneratePdf(
+            name: _nameController.text,
+            phone: _whatsappController.text,
+            address: _addressController.text,
+            totalAmount: _totalAmountController.text,
+            discountAmount: _discountAmountController.text,
+            advanceAmount: _advanceAmountController.text,
+            balanceAmount: _balanceAmountController.text,
+            payment: _paymentOption ?? "Cash",
+            branchId: _selectedBranchId,
+            executive: _executiveName ?? 'Admin',
+            treatmentDate: _treatmentDate,
+            hour: _selectedHour ?? "10",
+            minute: _selectedMinute ?? "00",
+            selectedTreatments: _selectedTreatments,
           );
-          Navigator.pop(context);
-        }
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text("Registration Failed")));
-        }
+
+      if (success && mounted) {
+        Navigator.pop(context);
       }
     }
   }

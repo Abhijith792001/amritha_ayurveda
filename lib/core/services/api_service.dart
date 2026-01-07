@@ -57,4 +57,58 @@ class ApiService {
       rethrow;
     }
   }
+
+  Future<Response> getPatientList(String token) async {
+    try {
+      final response = await _dio.get(
+        'PatientList',
+        options: Options(
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+      return response;
+    } on DioException catch (e) {
+      if (e.response != null) return e.response!;
+      rethrow;
+    }
+  }
+
+  Future<Response> getBranchList(String token) async {
+    try {
+      final response = await _dio.get(
+        'BranchList',
+        options: Options(
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+      return response;
+    } on DioException catch (e) {
+      if (e.response != null) return e.response!;
+      rethrow;
+    }
+  }
+
+  Future<Response> getTreatmentList(String token) async {
+    try {
+      final response = await _dio.get(
+        'TreatmentList',
+        options: Options(
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+      return response;
+    } on DioException catch (e) {
+      if (e.response != null) return e.response!;
+      rethrow;
+    }
+  }
 }

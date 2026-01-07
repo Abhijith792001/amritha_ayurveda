@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
+import '../provider/register_provider.dart';
 
 class TreatmentDialog extends StatefulWidget {
   const TreatmentDialog({super.key});
@@ -11,13 +13,16 @@ class TreatmentDialog extends StatefulWidget {
 class _TreatmentDialogState extends State<TreatmentDialog> {
   int maleCount = 0;
   int femaleCount = 0;
-  String? selectedTreatment;
+  String? selectedTreatmentId;
+  String? selectedTreatmentName;
 
-  final List<String> treatments = [
-    'Couple Combo package',
-    'Rejuvenation',
-    'Full Body Massage',
-  ];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<RegisterProvider>().fetchTreatments();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,24 +45,34 @@ class _TreatmentDialogState extends State<TreatmentDialog> {
                 color: const Color(0xffF1F1F1),
                 borderRadius: BorderRadius.circular(8.r),
               ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  isExpanded: true,
-                  hint: Text(
-                    "Choose preferred treatment",
-                    style: TextStyle(fontSize: 14.sp),
-                  ),
-                  value: selectedTreatment,
-                  items: treatments.map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  onChanged: (val) {
-                    setState(() => selectedTreatment = val);
-                  },
-                ),
+              child: Consumer<RegisterProvider>(
+                builder: (context, register, child) {
+                  return DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      isExpanded: true,
+                      hint: Text(
+                        "Choose preferred treatment",
+                        style: TextStyle(fontSize: 14.sp),
+                      ),
+                      value: selectedTreatmentId,
+                      items: register.treatments.map((treatment) {
+                        return DropdownMenuItem<String>(
+                          value: treatment['id'].toString(),
+                          child: Text(treatment['name'] ?? ''),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        final t = register.treatments.firstWhere(
+                          (e) => e['id'].toString() == val,
+                        );
+                        setState(() {
+                          selectedTreatmentId = val;
+                          selectedTreatmentName = t['name'];
+                        });
+                      },
+                    ),
+                  );
+                },
               ),
             ),
             SizedBox(height: 20.h),
@@ -83,9 +98,10 @@ class _TreatmentDialogState extends State<TreatmentDialog> {
               height: 45.h,
               child: ElevatedButton(
                 onPressed: () {
-                  if (selectedTreatment != null) {
+                  if (selectedTreatmentId != null) {
                     Navigator.pop(context, {
-                      'treatment': selectedTreatment,
+                      'id': selectedTreatmentId,
+                      'treatment': selectedTreatmentName,
                       'male': maleCount,
                       'female': femaleCount,
                     });

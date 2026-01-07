@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../provider/auth_provider.dart';
 import '../widgets/custom_input_field.dart';
 import '../../Pages/home/view/home_page.dart';
+import '../../../core/utils/snackbar_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -101,12 +102,9 @@ class _LoginPageState extends State<LoginPage> {
                                       .trim();
 
                                   if (username.isEmpty || password.isEmpty) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          "Please enter both username and password",
-                                        ),
-                                      ),
+                                    SnackbarService.showSnackBar(
+                                      "Please enter both username and password",
+                                      isError: true,
                                     );
                                     return;
                                   }
@@ -117,6 +115,10 @@ class _LoginPageState extends State<LoginPage> {
                                   );
                                   debugPrint("Login success: $success");
                                   if (success) {
+                                    SnackbarService.showSnackBar(
+                                      "Login Successful",
+                                      isSuccess: true,
+                                    );
                                     if (context.mounted) {
                                       debugPrint("Navigating to HomePage...");
                                       Navigator.pushReplacement(
@@ -128,15 +130,10 @@ class _LoginPageState extends State<LoginPage> {
                                       );
                                     }
                                   } else {
-                                    if (context.mounted) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text("Login Failed"),
-                                        ),
-                                      );
-                                    }
+                                    SnackbarService.showSnackBar(
+                                      "Login Failed",
+                                      isError: true,
+                                    );
                                   }
                                 },
                           style: ElevatedButton.styleFrom(

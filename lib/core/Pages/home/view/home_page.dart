@@ -1,10 +1,26 @@
+import 'package:amritha_ayurveda/core/authentication/provider/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../widgets/patient_card.dart';
 import '../../register/view/register_page.dart';
+import '../provider/home_provider.dart';
+import 'package:provider/provider.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<HomeProvider>().fetchPatientList();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +36,10 @@ class HomePage extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Icon(Icons.arrow_back, size: 24.sp),
+                  InkWell(
+                    onTap: () => _showLogoutDialog(context),
+                    child: Icon(Icons.logout, size: 24.sp),
+                  ),
                   Stack(
                     children: [
                       Icon(Icons.notifications_outlined, size: 28.sp),
@@ -142,19 +161,61 @@ class HomePage extends StatelessWidget {
             const Divider(),
             SizedBox(height: 10.h),
             Expanded(
-              child: ListView.builder(
-                padding: EdgeInsets.symmetric(horizontal: 16.sp),
-                itemCount: 1,
-                itemBuilder: (context, index) {
-                  return PatientCard(
-                    index: index,
-                    patientName: 'Vikram Singh',
-                    packageName: 'Couple Combo Package (Rejuven...',
-                    date: '31/01/2024',
-                    groupMember: 'Jithesh',
-                    onTap: () {
-                      // Handle view booking details
-                    },
+              child: Consumer<HomeProvider>(
+                builder: (context, homeProvider, child) {
+                  if (homeProvider.isLoading && homeProvider.patients.isEmpty) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (homeProvider.patients.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.person_off_outlined,
+                            size: 80.sp,
+                            color: Colors.grey,
+                          ),
+                          SizedBox(height: 16.h),
+                          Text(
+                            "No Patients Found",
+                            style: TextStyle(
+                              fontSize: 18.sp,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return RefreshIndicator(
+                    onRefresh: () => homeProvider.fetchPatientList(),
+                    child: ListView.builder(
+                      padding: EdgeInsets.symmetric(horizontal: 16.sp),
+                      itemCount: homeProvider.patients.length,
+                      itemBuilder: (context, index) {
+                        final patient = homeProvider.patients[index];
+                        // Extracting names from patientdetails
+                        final details =
+                            patient['patientdetails_set'] as List? ?? [];
+                        final packageName = details.isNotEmpty
+                            ? details[0]['treatment_name'] ?? 'N/A'
+                            : 'N/A';
+
+                        return PatientCard(
+                          index: index,
+                          patientName: patient['name'] ?? 'N/A',
+                          packageName: packageName,
+                          date: patient['date_nd_time']?.split('-')[0] ?? 'N/A',
+                          groupMember: patient['user'] ?? 'N/A',
+                          onTap: () {
+                            // Handle view booking details
+                          },
+                        );
+                      },
+                    ),
                   );
                 },
               ),
@@ -188,6 +249,29 @@ class HomePage extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Logout"),
+        content: const Text("Are you sure you want to logout?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              context.read<AuthProvider>().logout();
+            },
+            child: const Text("Logout", style: TextStyle(color: Colors.red)),
+          ),
+        ],
       ),
     );
   }
