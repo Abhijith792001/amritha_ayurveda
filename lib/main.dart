@@ -8,6 +8,7 @@ import 'core/authentication/provider/auth_provider.dart';
 import 'core/Pages/register/provider/register_provider.dart';
 import 'core/utils/snackbar_service.dart';
 import 'core/utils/navigation_service.dart';
+import 'core/providers/connectivity_provider.dart';
 
 void main() {
   runApp(
@@ -17,6 +18,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => SplashScreenProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => RegisterProvider()),
+        ChangeNotifierProvider(create: (_) => ConnectivityProvider()),
       ],
       child: const MyApp(),
     ),
