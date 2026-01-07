@@ -2,6 +2,7 @@ import 'package:amritha_ayurveda/core/authentication/provider/auth_provider.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../widgets/patient_card.dart';
+import 'booking_details_page.dart';
 import '../../register/view/register_page.dart';
 import '../provider/home_provider.dart';
 import 'package:provider/provider.dart';
@@ -14,6 +15,14 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -74,6 +83,12 @@ class _HomePageState extends State<HomePage> {
                         border: Border.all(color: Colors.grey.shade300),
                       ),
                       child: TextField(
+                        controller: _searchController,
+                        onChanged: (value) {
+                          if (value.isEmpty) {
+                            context.read<HomeProvider>().setSearchQuery("");
+                          }
+                        },
                         decoration: InputDecoration(
                           hintText: "Search for treatments",
                           hintStyle: TextStyle(
@@ -93,7 +108,11 @@ class _HomePageState extends State<HomePage> {
                   ),
                   SizedBox(width: 10.w),
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      context.read<HomeProvider>().setSearchQuery(
+                        _searchController.text,
+                      );
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xff006837),
                       foregroundColor: Colors.white,
@@ -163,11 +182,12 @@ class _HomePageState extends State<HomePage> {
             Expanded(
               child: Consumer<HomeProvider>(
                 builder: (context, homeProvider, child) {
-                  if (homeProvider.isLoading && homeProvider.patients.isEmpty) {
+                  if (homeProvider.isLoading &&
+                      homeProvider.filteredPatients.isEmpty) {
                     return const Center(child: CircularProgressIndicator());
                   }
 
-                  if (homeProvider.patients.isEmpty) {
+                  if (homeProvider.filteredPatients.isEmpty) {
                     return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -194,24 +214,35 @@ class _HomePageState extends State<HomePage> {
                     onRefresh: () => homeProvider.fetchPatientList(),
                     child: ListView.builder(
                       padding: EdgeInsets.symmetric(horizontal: 16.sp),
-                      itemCount: homeProvider.patients.length,
+                      itemCount: homeProvider.filteredPatients.length,
                       itemBuilder: (context, index) {
-                        final patient = homeProvider.patients[index];
+                        final patient = homeProvider.filteredPatients[index];
                         // Extracting names from patientdetails
-                        final details =
-                            patient['patientdetails_set'] as List? ?? [];
-                        final packageName = details.isNotEmpty
-                            ? details[0]['treatment_name'] ?? 'N/A'
+                        final packageName = patient.patientDetails.isNotEmpty
+                            ? patient.patientDetails[0].treatmentName ?? 'N/A'
                             : 'N/A';
+
+                        // Format Date correctly: dd/mm/yyyy
+                        String dateStr = 'N/A';
+                        if (patient.dateAndTime != null) {
+                          dateStr =
+                              "${patient.dateAndTime!.day.toString().padLeft(2, '0')}/${patient.dateAndTime!.month.toString().padLeft(2, '0')}/${patient.dateAndTime!.year}";
+                        }
 
                         return PatientCard(
                           index: index,
-                          patientName: patient['name'] ?? 'N/A',
+                          patientName: patient.name ?? 'N/A',
                           packageName: packageName,
-                          date: patient['date_nd_time']?.split('-')[0] ?? 'N/A',
-                          groupMember: patient['user'] ?? 'N/A',
+                          date: dateStr,
+                          groupMember: patient.user ?? 'N/A',
                           onTap: () {
-                            // Handle view booking details
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    BookingDetailsPage(patient: patient),
+                              ),
+                            );
                           },
                         );
                       },

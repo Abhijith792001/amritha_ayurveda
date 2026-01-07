@@ -52,11 +52,10 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Future<void> _loadUserInfo() async {
     final name = await _storage.getUserName();
-    final phone = await _storage.getUserPhone();
     setState(() {
       _executiveName = name;
-      if (name != null) _nameController.text = name;
-      if (phone != null) _whatsappController.text = phone;
+      // We don't populate _nameController and _whatsappController anymore
+      // because they are for the patient's info, not the executive's.
     });
   }
 
