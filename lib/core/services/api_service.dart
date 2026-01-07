@@ -30,4 +30,31 @@ class ApiService {
       rethrow;
     }
   }
+
+  Future<Response> updatePatient(
+    Map<String, dynamic> data,
+    String token,
+  ) async {
+    try {
+      final formData = FormData.fromMap(data);
+
+      final response = await _dio.post(
+        'PatientUpdate',
+        data: formData,
+        options: Options(
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+
+      return response;
+    } on DioException catch (e) {
+      if (e.response != null) {
+        return e.response!;
+      }
+      rethrow;
+    }
+  }
 }

@@ -1,10 +1,11 @@
-import 'package:amritha_ayurveda/core/Pages/splash_screen_page.dart';
+import 'package:amritha_ayurveda/core/Pages/splash/view/splash_screen_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'core/providers/home_provider.dart';
-import 'core/providers/splash_screen_provider.dart';
+import 'core/Pages/home/provider/home_provider.dart';
+import 'core/Pages/splash/provider/splash_screen_provider.dart';
 import 'core/authentication/provider/auth_provider.dart';
+import 'core/Pages/register/provider/register_provider.dart';
 
 void main() {
   runApp(
@@ -13,6 +14,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => HomeProvider()),
         ChangeNotifierProvider(create: (_) => SplashScreenProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => RegisterProvider()),
       ],
       child: const MyApp(),
     ),

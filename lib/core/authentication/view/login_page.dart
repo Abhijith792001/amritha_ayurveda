@@ -4,7 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import '../provider/auth_provider.dart';
 import '../widgets/custom_input_field.dart';
-import '../../Pages/home_page.dart';
+import '../../Pages/home/view/home_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
